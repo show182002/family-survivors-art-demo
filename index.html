@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <title>Family Survivors — Art Demo v0.00011</title>
+  <title>Family Survivors — Art Demo v0.00012</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -114,14 +114,15 @@
   <div id="rotateGate" aria-live="polite">
     <div class="phone">📱</div>
     <h1>請將手機打橫</h1>
-    <p>呢個 demo 只支援橫機。<br>轉橫之後會自動開始。</p>
+    <p>呢個 demo 只支援橫機。<br>請打橫；轉好會自動開始。<br><span style="font-size:14px;opacity:.7">若無反應可撳下面</span></p>
+    <button type="button" id="rotateRetry" style="margin-top:18px;font-size:18px;padding:12px 20px;border-radius:12px;border:2px solid #ffe066;background:#3a2a10;color:#ffe066;">我已轉橫 · 繼續</button>
   </div>
 
   <div id="stage">
     <canvas id="game" width="1920" height="1080"></canvas>
   </div>
-  <div id="verBadge">v0.00011</div>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00011</div>
+  <div id="verBadge">v0.00012</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00012</div>
 
   <script>
   (function () {
@@ -132,10 +133,10 @@
     } catch (e) {}
   })();
   </script>
-  <script src="js/spriteUtil.js?v=00011"></script>
-  <script src="js/characters/daughter.js?v=00011"></script>
-  <script src="js/characters/dad.js?v=00011"></script>
-  <script src="js/main.js?v=00011"></script>
+  <script src="js/spriteUtil.js?v=00012"></script>
+  <script src="js/characters/daughter.js?v=00012"></script>
+  <script src="js/characters/dad.js?v=00012"></script>
+  <script src="js/main.js?v=00012"></script>
   <script>
   (function () {
     setTimeout(function () {
@@ -143,7 +144,7 @@
         var h = document.getElementById('openHelp');
         if (h) {
           h.style.display = 'block';
-          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟。</p><p>v0.00011</p>';
+          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟。</p><p>v0.00012</p>';
         }
       }
     }, 1200);

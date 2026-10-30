@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00011
+# Family Survivors — Art Demo v0.00012
 
-Landscape-only on phones (portrait shows rotate overlay). Internal 1920×1080 with contain.
+Phone landscape gate with stronger rotate detection + retry button.
 
 Play: https://show182002.github.io/family-survivors-art-demo/
