@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00012
+ * Family Survivors — Art Demo v0.00013
  * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00012';
+  const VERSION = 'v0.00013';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -90,112 +90,21 @@
     visualViewport.addEventListener('scroll', layoutCanvas);
   }
 
-  // —— Portrait gate: mobile must be landscape ——
-  function viewportWH() {
-    const vv = window.visualViewport;
-    const w = Math.max(
-      (vv && vv.width) || 0,
-      window.innerWidth || 0,
-      document.documentElement.clientWidth || 0
-    );
-    const h = Math.max(
-      (vv && vv.height) || 0,
-      window.innerHeight || 0,
-      document.documentElement.clientHeight || 0
-    );
-    return { w: w || 1, h: h || 1 };
+  // Soft tip only — no hard rotate gate (iOS orientation APIs unreliable)
+  function updateSoftTip() {
+    var tip = document.getElementById('softTip');
+    if (!tip) return;
+    var w = window.innerWidth || 1, h = window.innerHeight || 1;
+    var touch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+    tip.style.display = (touch && h > w) ? 'block' : 'none';
   }
-  function isLandscapeNow() {
-    const { w, h } = viewportWH();
-    if (w >= h) return true;
-    try {
-      if (screen.orientation && screen.orientation.type) {
-        if (String(screen.orientation.type).indexOf('landscape') === 0) return true;
-      }
-    } catch (_) {}
-    try {
-      if (typeof window.orientation === 'number') {
-        if (window.orientation === 90 || window.orientation === -90) return true;
-      }
-    } catch (_) {}
-    try {
-      if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) return true;
-    } catch (_) {}
-    return false;
-  }
-  function isTouchLike() {
-    const shortSide = Math.min(window.screen.width || 9999, window.screen.height || 9999);
-    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) && shortSide < 950;
-  }
-  function showGameUI() {
-    const gate = document.getElementById('rotateGate');
-    const stage = document.getElementById('stage');
-    const hint = document.getElementById('hint');
-    const badge = document.getElementById('verBadge');
-    if (gate) gate.style.display = 'none';
-    if (stage) {
-      stage.style.display = 'flex';
-      stage.style.visibility = 'visible';
-    }
-    if (hint) hint.style.display = 'block';
-    if (badge) badge.style.display = 'block';
-    layoutCanvas();
-    requestAnimationFrame(function () { layoutCanvas(); });
-  }
-  function updateRotateGate() {
-    const gate = document.getElementById('rotateGate');
-    const stage = document.getElementById('stage');
-    const hint = document.getElementById('hint');
-    const badge = document.getElementById('verBadge');
-    if (!gate) return;
-    if (badge) badge.style.display = 'block';
-    const needGate = isTouchLike() && !isLandscapeNow();
-    if (needGate) {
-      gate.style.display = 'flex';
-      if (stage) stage.style.visibility = 'hidden';
-      if (hint) hint.style.display = 'none';
-      return;
-    }
-    showGameUI();
-  }
-  function scheduleRotateChecks() {
-    updateRotateGate();
-    [50, 120, 250, 400, 700, 1000].forEach(function (ms) {
-      setTimeout(updateRotateGate, ms);
-    });
-  }
-  updateRotateGate();
-  window.addEventListener('orientationchange', scheduleRotateChecks);
-  window.addEventListener('resize', scheduleRotateChecks);
-  if (window.visualViewport) {
-    visualViewport.addEventListener('resize', scheduleRotateChecks);
-  }
-  try {
-    if (screen.orientation && screen.orientation.addEventListener) {
-      screen.orientation.addEventListener('change', scheduleRotateChecks);
-    }
-  } catch (_) {}
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) scheduleRotateChecks();
+  updateSoftTip();
+  window.addEventListener('resize', updateSoftTip);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(function () { updateSoftTip(); layoutCanvas(); }, 100);
+    setTimeout(function () { updateSoftTip(); layoutCanvas(); }, 400);
   });
-  var retryBtn = document.getElementById('rotateRetry');
-  if (retryBtn) {
-    retryBtn.addEventListener('click', function () {
-      // Force continue even if orientation APIs lag (user says already landscape)
-      showGameUI();
-      try {
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(function () {});
-        }
-      } catch (_) {}
-      scheduleRotateChecks();
-    });
-  }
-  try {
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(function () {});
-    }
-  } catch (_) {}
+
 
   function clientToCanvas(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();

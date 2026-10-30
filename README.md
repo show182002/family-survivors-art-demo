@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00012
+# Family Survivors — Art Demo v0.00013
 
-Phone landscape gate with stronger rotate detection + retry button.
+No hard rotate lock (iOS unreliable). 16:9 contain; soft tip suggests landscape.
 
 Play: https://show182002.github.io/family-survivors-art-demo/
