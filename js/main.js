@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00014
- * Mobile fix: iOS landscape re-layout (stage rect + multi-retry after orientation)
+ * Family Survivors — Art Demo v0.00015
+ * Mobile fix: CSS sizes canvas (dvw/dvh 16:9); JS does not fight rotate
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00014';
+  const VERSION = 'v0.00015';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -54,86 +54,53 @@
   }
   bootPaint();
 
-  // —— Viewport: never trust a single visualViewport read (iOS lag after rotate) ——
-  function viewportSize() {
-    var vw = 0, vh = 0;
-    // Prefer measuring the fixed full-screen stage (most reliable after CSS 100dvh)
-    if (stage) {
-      var br = stage.getBoundingClientRect();
-      if (br && br.width > 0 && br.height > 0) {
-        vw = br.width;
-        vh = br.height;
-      }
-    }
-    var iw = window.innerWidth || 0;
-    var ih = window.innerHeight || 0;
-    var cw = (document.documentElement && document.documentElement.clientWidth) || 0;
-    var ch = (document.documentElement && document.documentElement.clientHeight) || 0;
-    vw = Math.max(vw, iw, cw);
-    vh = Math.max(vh, ih, ch);
-    // visualViewport as another candidate (do NOT prefer alone — often stale on iOS)
-    var vv = window.visualViewport;
-    if (vv && vv.width && vv.height) {
-      vw = Math.max(vw, vv.width);
-      vh = Math.max(vh, vv.height);
-    }
-    // Screen sanity floor: after rotate, JS sizes can stay stuck on old orientation
-    try {
-      var sw = window.screen && window.screen.width ? window.screen.width : 0;
-      var sh = window.screen && window.screen.height ? window.screen.height : 0;
-      if (sw && sh) {
-        var landscape = false;
-        if (window.screen.orientation && typeof window.screen.orientation.type === 'string') {
-          landscape = window.screen.orientation.type.indexOf('landscape') === 0;
-        } else if (typeof window.orientation === 'number') {
-          landscape = Math.abs(window.orientation) === 90;
-        } else {
-          landscape = (iw || vw) > (ih || vh);
-        }
-        var longSide = Math.max(sw, sh);
-        var shortSide = Math.min(sw, sh);
-        if (landscape) {
-          // If reported width still looks like the short physical side, lift to screen
-          if (vw < longSide * 0.85) vw = Math.max(vw, longSide);
-          if (vh < shortSide * 0.85) vh = Math.max(vh, shortSide);
-        } else {
-          if (vw < shortSide * 0.85) vw = Math.max(vw, shortSide);
-          if (vh < longSide * 0.85) vh = Math.max(vh, longSide);
-        }
-      }
-    } catch (_) {}
-    return {
-      w: Math.max(1, vw || 320),
-      h: Math.max(1, vh || 480)
-    };
-  }
-
+  // —— Layout: CSS owns display size (dvw/dvh 16:9). JS only keeps bitmap 1920×1080. ——
   function layoutCanvas() {
-    // 16:9 contain — never stretch
-    var size = viewportSize();
-    var vw = size.w, vh = size.h;
-    var scale = Math.min(vw / W, vh / H);
-    var cssW = Math.max(1, Math.floor(W * scale));
-    var cssH = Math.max(1, Math.floor(H * scale));
-    // Re-derive H from W to kill rounding stretch
-    var cssH2 = Math.max(1, Math.round(cssW * (H / W)));
-    var finalW = cssW;
-    var finalH = (Math.abs(cssH2 - cssH) <= 2) ? cssH2 : cssH;
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
-    canvas.style.width = finalW + 'px';
-    canvas.style.height = finalH + 'px';
+    // Do NOT set style.width/height from JS — CSS min(dvw, …) updates on rotate.
+    // Fallback only if computed size is 0 (very broken WebViews).
+    try {
+      var cs = window.getComputedStyle(canvas);
+      var cw = parseFloat(cs.width) || 0;
+      var ch = parseFloat(cs.height) || 0;
+      if (cw < 2 || ch < 2) {
+        var iw = window.innerWidth || 320;
+        var ih = window.innerHeight || 180;
+        var scale = Math.min(iw / W, ih / H);
+        canvas.style.width = Math.max(1, Math.floor(W * scale)) + 'px';
+        canvas.style.height = Math.max(1, Math.floor(H * scale)) + 'px';
+      } else {
+        // Clear any leftover inline sizes from older builds / caches
+        canvas.style.width = '';
+        canvas.style.height = '';
+      }
+    } catch (_) {
+      canvas.style.width = '';
+      canvas.style.height = '';
+    }
     ctx.imageSmoothingEnabled = false;
   }
 
-  // Soft tip only — no hard rotate gate (iOS orientation APIs unreliable)
+  // Soft tip: matchMedia orientation (more reliable than innerWidth after rotate)
+  var portraitMq = null;
+  try {
+    portraitMq = window.matchMedia('(orientation: portrait)');
+  } catch (_) {
+    portraitMq = null;
+  }
+
   function updateSoftTip() {
     var tip = document.getElementById('softTip');
     if (!tip) return;
-    var size = viewportSize();
-    var w = size.w || 1, h = size.h || 1;
     var touch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
-    tip.style.display = (touch && h > w) ? 'block' : 'none';
+    var portrait = false;
+    if (portraitMq && typeof portraitMq.matches === 'boolean') {
+      portrait = portraitMq.matches;
+    } else {
+      portrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+    }
+    tip.style.display = (touch && portrait) ? 'block' : 'none';
   }
 
   function layoutAndTip() {
@@ -141,36 +108,20 @@
     updateSoftTip();
   }
 
-  // Aggressive re-layout: iOS Safari visualViewport/innerWidth lag after orientationchange
-  var layoutRetryTimers = [];
-  function scheduleAggressiveLayout() {
-    var delays = [0, 50, 100, 250, 500, 1000];
-    var i;
-    for (i = 0; i < layoutRetryTimers.length; i++) clearTimeout(layoutRetryTimers[i]);
-    layoutRetryTimers = [];
-    try {
-      requestAnimationFrame(function () { layoutAndTip(); });
-    } catch (_) {
-      layoutAndTip();
-    }
-    for (i = 0; i < delays.length; i++) {
-      (function (ms) {
-        layoutRetryTimers.push(setTimeout(layoutAndTip, ms));
-      })(delays[i]);
-    }
-  }
-
   layoutAndTip();
 
-  window.addEventListener('resize', scheduleAggressiveLayout);
-  window.addEventListener('orientationchange', scheduleAggressiveLayout);
+  window.addEventListener('resize', layoutAndTip);
+  window.addEventListener('orientationchange', layoutAndTip);
   if (window.visualViewport) {
-    visualViewport.addEventListener('resize', scheduleAggressiveLayout);
-    visualViewport.addEventListener('scroll', scheduleAggressiveLayout);
+    visualViewport.addEventListener('resize', layoutAndTip);
   }
-  if (window.screen && window.screen.orientation && window.screen.orientation.addEventListener) {
+  if (portraitMq) {
     try {
-      window.screen.orientation.addEventListener('change', scheduleAggressiveLayout);
+      if (typeof portraitMq.addEventListener === 'function') {
+        portraitMq.addEventListener('change', layoutAndTip);
+      } else if (typeof portraitMq.addListener === 'function') {
+        portraitMq.addListener(layoutAndTip);
+      }
     } catch (_) {}
   }
 

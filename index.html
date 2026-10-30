@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta http-equiv="Cache-Control" content="no-cache" />
-  <title>Family Survivors — Art Demo v0.00014</title>
+  <title>Family Survivors — Art Demo v0.00015</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -43,8 +43,16 @@
     }
     #game {
       display: block;
-      width: 320px;
-      height: 180px;
+      /* 16:9 contain — browser updates on rotate without JS */
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: min(100vh, calc(100vw * 9 / 16));
+      max-width: 100vw;
+      max-height: 100vh;
+      /* prefer dynamic viewport units where supported */
+      width: min(100dvw, calc(100dvh * 16 / 9));
+      height: min(100dvh, calc(100dvw * 9 / 16));
+      max-width: 100dvw;
+      max-height: 100dvh;
       background: #3d6b2e;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
@@ -97,9 +105,9 @@
   <div id="stage">
     <canvas id="game" width="1920" height="1080"></canvas>
   </div>
-  <div id="verBadge">v0.00014</div>
+  <div id="verBadge">v0.00015</div>
   <div id="softTip">建議打橫玩 · 直機會留黑邊</div>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00014</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00015</div>
   <script>
   (function () {
     try {
@@ -109,9 +117,9 @@
     } catch (e) {}
   })();
   </script>
-  <script src="js/spriteUtil.js?v=00014"></script>
-  <script src="js/characters/daughter.js?v=00014"></script>
-  <script src="js/characters/dad.js?v=00014"></script>
-  <script src="js/main.js?v=00014"></script>
+  <script src="js/spriteUtil.js?v=00015"></script>
+  <script src="js/characters/daughter.js?v=00015"></script>
+  <script src="js/characters/dad.js?v=00015"></script>
+  <script src="js/main.js?v=00015"></script>
 </body>
 </html>
