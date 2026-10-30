@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Family Survivors — Art Demo v0.00007</title>
+  <title>Family Survivors — Art Demo v0.00008</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -38,10 +38,9 @@
     #game {
       display: none;
       position: fixed;
-      left: 0; top: 0; right: 0; bottom: 0;
-      width: 100% !important;
-      height: 100% !important;
-      background: #3d6b2e;
+      left: 0; top: 0;
+      /* size/position set by JS letterbox (keep 16:9) */
+      background: #1a1408;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
       touch-action: none;
@@ -78,7 +77,7 @@
   </div>
 
   <canvas id="game" width="1920" height="1080"></canvas>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · v0.00007</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · v0.00008</div>
 
   <!-- Tiny boot: if JS runs at all, flip UI before heavy scripts -->
   <script>
@@ -104,7 +103,7 @@
         var h = document.getElementById('openHelp');
         var c = document.getElementById('game');
         if (h && h.style.display !== 'none') {
-          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>JS 有跑但主程式未開始。請截圖呢個畫面寄返。</p><p style="font-size:14px;opacity:.7">v0.00007</p>';
+          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>JS 有跑但主程式未開始。請截圖呢個畫面寄返。</p><p style="font-size:14px;opacity:.7">v0.00008</p>';
         } else if (h && (!c || c.style.display === 'none')) {
           h.style.display = 'block';
           h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟，唔好用檔案預覽。</p>';

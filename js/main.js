@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00007
+ * Family Survivors — Art Demo v0.00008
  * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00007';
+  const VERSION = 'v0.00008';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -58,18 +58,23 @@
   }
 
   function layoutCanvas() {
-    // Keep internal resolution fixed; CSS fills the visible viewport.
+    // Keep 16:9; letterbox on tall phones (no vertical stretch)
+    const vp = viewportSize();
+    const scale = Math.min(vp.w / W, vp.h / H);
+    const dispW = Math.max(1, Math.floor(W * scale));
+    const dispH = Math.max(1, Math.floor(H * scale));
+    const left = Math.floor((vp.w - dispW) / 2);
+    const top = Math.floor((vp.h - dispH) / 2);
     canvas.style.position = 'fixed';
-    canvas.style.left = '0';
-    canvas.style.top = '0';
-    canvas.style.right = '0';
-    canvas.style.bottom = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
+    canvas.style.left = left + 'px';
+    canvas.style.top = top + 'px';
+    canvas.style.right = 'auto';
+    canvas.style.bottom = 'auto';
+    canvas.style.width = dispW + 'px';
+    canvas.style.height = dispH + 'px';
     canvas.style.maxWidth = 'none';
     canvas.style.maxHeight = 'none';
     canvas.style.zIndex = '1';
-    // Ensure attribute size stays logical
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
     ctx.imageSmoothingEnabled = false;
