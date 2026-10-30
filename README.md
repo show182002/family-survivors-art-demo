@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00010
+# Family Survivors — Art Demo v0.00011
 
-Internal 1920×1080; display uses single-scale contain (exact 16:9 CSS). Prefer landscape.
+Landscape-only on phones (portrait shows rotate overlay). Internal 1920×1080 with contain.
 
 Play: https://show182002.github.io/family-survivors-art-demo/

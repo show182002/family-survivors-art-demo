@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00010
+ * Family Survivors — Art Demo v0.00011
  * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00010';
+  const VERSION = 'v0.00011';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -89,6 +89,44 @@
     visualViewport.addEventListener('resize', layoutCanvas);
     visualViewport.addEventListener('scroll', layoutCanvas);
   }
+
+  // —— Portrait gate: mobile must be landscape ——
+  function isPortrait() {
+    const vv = window.visualViewport;
+    const w = (vv && vv.width) ? vv.width : (window.innerWidth || 1);
+    const h = (vv && vv.height) ? vv.height : (window.innerHeight || 1);
+    if (window.matchMedia) {
+      try { if (window.matchMedia('(orientation: portrait)').matches) return true; } catch (_) {}
+    }
+    return h > w;
+  }
+  function isTouchLike() {
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) && Math.min(window.screen.width, window.screen.height) < 900;
+  }
+  function updateRotateGate() {
+    const gate = document.getElementById('rotateGate');
+    const stage = document.getElementById('stage');
+    const hint = document.getElementById('hint');
+    const badge = document.getElementById('verBadge');
+    if (!gate) return;
+    const need = isTouchLike() && isPortrait();
+    gate.style.display = need ? 'flex' : 'none';
+    if (stage) stage.style.visibility = need ? 'hidden' : 'visible';
+    if (hint) hint.style.display = need ? 'none' : 'block';
+    if (badge) badge.style.display = 'block';
+    if (!need) layoutCanvas();
+  }
+  updateRotateGate();
+  window.addEventListener('orientationchange', function () { setTimeout(updateRotateGate, 80); });
+  window.addEventListener('resize', updateRotateGate);
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', updateRotateGate);
+  }
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(function () {});
+    }
+  } catch (_) {}
 
   function clientToCanvas(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();

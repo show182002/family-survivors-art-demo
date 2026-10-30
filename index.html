@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="screen-orientation" content="landscape" />
-  <title>Family Survivors — Art Demo v0.00010</title>
+  <title>Family Survivors — Art Demo v0.00011</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -77,6 +77,26 @@
       border-radius: 8px;
       pointer-events: none;
     }
+
+    #rotateGate {
+      display: none;
+      position: fixed; inset: 0; z-index: 20;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      background: #1a1408;
+      color: #fff8e0;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    #rotateGate .phone {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 16px;
+      transform: rotate(90deg);
+    }
+    #rotateGate h1 { font-size: 26px; color: #ffe066; margin: 0 0 12px; }
+    #rotateGate p { font-size: 17px; line-height: 1.5; margin: 0; opacity: .9; }
   </style>
 </head>
 <body>
@@ -90,11 +110,18 @@
     <noscript><p style="color:#f66;font-size:20px;margin-top:20px">呢個環境關閉咗 JavaScript，遊戲一定開唔到。</p></noscript>
   </div>
 
+  
+  <div id="rotateGate" aria-live="polite">
+    <div class="phone">📱</div>
+    <h1>請將手機打橫</h1>
+    <p>呢個 demo 只支援橫機。<br>轉橫之後會自動開始。</p>
+  </div>
+
   <div id="stage">
     <canvas id="game" width="1920" height="1080"></canvas>
   </div>
-  <div id="verBadge">v0.00010</div>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00010</div>
+  <div id="verBadge">v0.00011</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00011</div>
 
   <script>
   (function () {
@@ -105,10 +132,10 @@
     } catch (e) {}
   })();
   </script>
-  <script src="js/spriteUtil.js?v=00010"></script>
-  <script src="js/characters/daughter.js?v=00010"></script>
-  <script src="js/characters/dad.js?v=00010"></script>
-  <script src="js/main.js?v=00010"></script>
+  <script src="js/spriteUtil.js?v=00011"></script>
+  <script src="js/characters/daughter.js?v=00011"></script>
+  <script src="js/characters/dad.js?v=00011"></script>
+  <script src="js/main.js?v=00011"></script>
   <script>
   (function () {
     setTimeout(function () {
@@ -116,7 +143,7 @@
         var h = document.getElementById('openHelp');
         if (h) {
           h.style.display = 'block';
-          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟。</p><p>v0.00010</p>';
+          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟。</p><p>v0.00011</p>';
         }
       }
     }, 1200);
