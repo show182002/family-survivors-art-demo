@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00008
+ * Family Survivors — Art Demo v0.00009
  * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00008';
+  const VERSION = 'v0.00009';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -33,7 +33,13 @@
   // Mark JS alive ASAP (hides the "open in browser" gate)
   var gate = document.getElementById('openHelp');
   if (gate) gate.style.display = 'none';
+  var stage = document.getElementById('stage');
+  if (stage) stage.style.display = 'flex';
   canvas.style.display = 'block';
+  var badge = document.getElementById('verBadge');
+  if (badge) badge.style.display = 'block';
+  var hintEl = document.getElementById('hint');
+  if (hintEl) hintEl.style.display = 'block';
   ctx.imageSmoothingEnabled = false;
 
   // Immediate paint so phone never shows empty CSS-green with no JS feedback
@@ -58,23 +64,17 @@
   }
 
   function layoutCanvas() {
-    // Keep 16:9; letterbox on tall phones (no vertical stretch)
-    const vp = viewportSize();
-    const scale = Math.min(vp.w / W, vp.h / H);
-    const dispW = Math.max(1, Math.floor(W * scale));
-    const dispH = Math.max(1, Math.floor(H * scale));
-    const left = Math.floor((vp.w - dispW) / 2);
-    const top = Math.floor((vp.h - dispH) / 2);
-    canvas.style.position = 'fixed';
-    canvas.style.left = left + 'px';
-    canvas.style.top = top + 'px';
-    canvas.style.right = 'auto';
-    canvas.style.bottom = 'auto';
-    canvas.style.width = dispW + 'px';
-    canvas.style.height = dispH + 'px';
-    canvas.style.maxWidth = 'none';
-    canvas.style.maxHeight = 'none';
-    canvas.style.zIndex = '1';
+    // Size comes from CSS (#game 16:9 letterbox). Only keep bitmap size.
+    // Clear any leftover inline stretch from older cached builds.
+    canvas.style.position = '';
+    canvas.style.left = '';
+    canvas.style.top = '';
+    canvas.style.right = '';
+    canvas.style.bottom = '';
+    canvas.style.width = '';
+    canvas.style.height = '';
+    canvas.style.maxWidth = '';
+    canvas.style.maxHeight = '';
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
     ctx.imageSmoothingEnabled = false;

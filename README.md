@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00008
+# Family Survivors — Art Demo v0.00009
 
-**手機：** 直機會 letterbox 保持 16:9（唔再拉長）。最好橫機玩。唔好用「檔案預覽」開 HTML。
+CSS letterbox 16:9（直機上下黑邊）。腳本 `?v=00009` 防 cache。
 
 Play: https://show182002.github.io/family-survivors-art-demo/
