@@ -1,12 +1,13 @@
 /**
- * Family Survivors — Art Demo v0.00017
- * Mobile fix: CSS 16:9; hard portrait gate; fullscreen button
+ * Family Survivors — Art Demo v0.00018
+ * TRIAL: page taller than screen + scrollTo coax Safari address-bar hide
+ * CSS 16:9 contain vs visualViewport; hard portrait gate; sticks unchanged
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00017';
+  const VERSION = 'v0.00018';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -38,9 +39,66 @@
   canvas.style.display = 'block';
   var badge = document.getElementById('verBadge');
   if (badge) badge.style.display = 'block';
+  var trialBanner = document.getElementById('trialBanner');
+  if (trialBanner) trialBanner.style.display = 'block';
   var hintEl = document.getElementById('hint');
   if (hintEl) hintEl.style.display = 'block';
   ctx.imageSmoothingEnabled = false;
+
+  var shell = document.getElementById('shell');
+  var scrollSpacer = document.getElementById('scrollSpacer');
+
+  // —— Trial: make document taller than visualViewport, scroll to coax chrome hide ——
+  function viewportSize() {
+    var vv = window.visualViewport;
+    var w = (vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320;
+    var h = (vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 180;
+    return { w: w, h: h, vv: vv };
+  }
+
+  function pinShellToVisualViewport() {
+    var sz = viewportSize();
+    try {
+      document.documentElement.style.setProperty('--vvw', sz.w + 'px');
+      document.documentElement.style.setProperty('--vvh', sz.h + 'px');
+    } catch (_) {}
+    if (shell) {
+      var top = (sz.vv && typeof sz.vv.offsetTop === 'number') ? sz.vv.offsetTop : 0;
+      var left = (sz.vv && typeof sz.vv.offsetLeft === 'number') ? sz.vv.offsetLeft : 0;
+      shell.style.top = top + 'px';
+      shell.style.left = left + 'px';
+      shell.style.width = sz.w + 'px';
+      shell.style.height = sz.h + 'px';
+    }
+    if (scrollSpacer) {
+      // ~140px past visible height so scrollHeight > screen (classic taller-page trick)
+      scrollSpacer.style.height = Math.ceil(sz.h + 140) + 'px';
+    }
+    try {
+      document.body.style.minHeight = Math.ceil(sz.h + 140) + 'px';
+    } catch (_) {}
+  }
+
+  function coaxChromeHide() {
+    pinShellToVisualViewport();
+    // Classic mobile Safari: scroll 1px so chrome collapses if browser allows
+    try {
+      var y = window.scrollY || window.pageYOffset || 0;
+      if (y < 1) {
+        window.scrollTo(0, 1);
+      } else {
+        // nudge then settle — some WebKits only react to a change
+        window.scrollTo(0, y + 1);
+        setTimeout(function () {
+          try { window.scrollTo(0, 1); } catch (_2) {}
+          pinShellToVisualViewport();
+        }, 30);
+      }
+    } catch (_) {}
+    setTimeout(pinShellToVisualViewport, 60);
+    setTimeout(pinShellToVisualViewport, 200);
+    setTimeout(pinShellToVisualViewport, 450);
+  }
 
   // Immediate paint so phone never shows empty CSS-green with no JS feedback
   function bootPaint(msg) {
@@ -54,24 +112,22 @@
   }
   bootPaint();
 
-  // —— Layout: CSS owns display size (dvw/dvh 16:9). JS only keeps bitmap 1920×1080. ——
+  // —— Layout: CSS contain vs --vvw/--vvh (visualViewport). Bitmap stays 1920×1080. ——
   function layoutCanvas() {
+    pinShellToVisualViewport();
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
-    // Do NOT set style.width/height from JS — CSS min(dvw, …) updates on rotate.
-    // Fallback only if computed size is 0 (very broken WebViews).
+    // Prefer CSS vars; fallback inline only if computed size is 0.
     try {
       var cs = window.getComputedStyle(canvas);
       var cw = parseFloat(cs.width) || 0;
       var ch = parseFloat(cs.height) || 0;
       if (cw < 2 || ch < 2) {
-        var iw = window.innerWidth || 320;
-        var ih = window.innerHeight || 180;
-        var scale = Math.min(iw / W, ih / H);
+        var sz = viewportSize();
+        var scale = Math.min(sz.w / W, sz.h / H);
         canvas.style.width = Math.max(1, Math.floor(W * scale)) + 'px';
         canvas.style.height = Math.max(1, Math.floor(H * scale)) + 'px';
       } else {
-        // Clear any leftover inline sizes from older builds / caches
         canvas.style.width = '';
         canvas.style.height = '';
       }
@@ -121,6 +177,11 @@
     updateSoftTip();
   }
 
+  function layoutTipAndCoax() {
+    coaxChromeHide();
+    layoutAndTip();
+  }
+
   if (rotateModal) {
     rotateModal.addEventListener('touchstart', function (e) {
       // block sticks through overlay while gated
@@ -133,22 +194,43 @@
     }, { passive: false });
   }
 
-  layoutAndTip();
+  layoutTipAndCoax();
 
-  window.addEventListener('resize', layoutAndTip);
-  window.addEventListener('orientationchange', layoutAndTip);
+  window.addEventListener('resize', layoutTipAndCoax);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(layoutTipAndCoax, 50);
+    setTimeout(layoutTipAndCoax, 300);
+  });
+  window.addEventListener('scroll', function () {
+    pinShellToVisualViewport();
+  }, { passive: true });
   if (window.visualViewport) {
-    visualViewport.addEventListener('resize', layoutAndTip);
+    visualViewport.addEventListener('resize', layoutTipAndCoax);
+    visualViewport.addEventListener('scroll', function () {
+      pinShellToVisualViewport();
+    });
   }
   if (portraitMq) {
     try {
       if (typeof portraitMq.addEventListener === 'function') {
-        portraitMq.addEventListener('change', layoutAndTip);
+        portraitMq.addEventListener('change', layoutTipAndCoax);
       } else if (typeof portraitMq.addListener === 'function') {
-        portraitMq.addListener(layoutAndTip);
+        portraitMq.addListener(layoutTipAndCoax);
       }
     } catch (_) {}
   }
+
+  // First touch / click also re-coax (gesture-gated browsers)
+  var coaxOnce = false;
+  function onFirstGesture() {
+    coaxChromeHide();
+    layoutAndTip();
+    if (!coaxOnce) {
+      coaxOnce = true;
+    }
+  }
+  window.addEventListener('touchstart', onFirstGesture, { passive: true, capture: true });
+  window.addEventListener('pointerdown', onFirstGesture, { passive: true, capture: true });
 
   // —— Fullscreen button ——
   var fsBtn = document.getElementById('fsBtn');
@@ -510,9 +592,11 @@
   }
 
   canvas.style.touchAction = 'none';
-  document.body.style.touchAction = 'none';
+  if (shell) shell.style.touchAction = 'none';
+  // body keeps overflow scroll for chrome-hide trial; sticks bind to canvas + shell only
   bindTouchTarget(canvas);
-  bindTouchTarget(document.body);
+  if (shell) bindTouchTarget(shell);
+  else bindTouchTarget(document.body);
 
   // Mouse for desktop stick testing
   let mouseStick = null;
@@ -614,7 +698,7 @@
       ctx.strokeRect(16.5, 16.5, 459, 51);
       ctx.fillStyle = '#fff8e0';
       ctx.font = '600 20px sans-serif';
-      ctx.fillText('Art Demo  ' + VERSION, 28, 48);
+      ctx.fillText('Art Demo  ' + VERSION + '  試逼收網址列', 28, 48);
       ctx.fillStyle = 'rgba(255,255,240,0.8)';
       ctx.font = '16px sans-serif';
       ctx.fillText('左搖桿/WASD=女兒 · 右搖桿/方向鍵=爸爸', 28, 88);

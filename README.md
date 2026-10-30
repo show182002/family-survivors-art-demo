@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00017
+# Family Survivors — Art Demo v0.00018
 
-Hard portrait gate (請打橫玩 — no dismiss). CSS dvw/dvh 16:9 contain. Fullscreen button; iPhone in-app browsers often need Open in Safari.
+TRIAL: page taller than visualViewport + scrollTo(0,1) to coax Safari address-bar collapse. Game shell pinned to visualViewport; 16:9 contain. Hard portrait gate unchanged.
 
 Play: https://show182002.github.io/family-survivors-art-demo/
