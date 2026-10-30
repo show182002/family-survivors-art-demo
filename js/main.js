@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00013
- * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
+ * Family Survivors — Art Demo v0.00014
+ * Mobile fix: iOS landscape re-layout (stage rect + multi-retry after orientation)
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00013';
+  const VERSION = 'v0.00014';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -54,56 +54,125 @@
   }
   bootPaint();
 
-  // —— Viewport: fill screen; map touches via getBoundingClientRect ——
-  // Use 100% CSS size (fixed) so mobile Chrome always shows the bitmap scaled.
+  // —— Viewport: never trust a single visualViewport read (iOS lag after rotate) ——
   function viewportSize() {
-    const vv = window.visualViewport;
-    if (vv && vv.width && vv.height) return { w: vv.width, h: vv.height };
-    return { w: window.innerWidth || document.documentElement.clientWidth || 320,
-             h: window.innerHeight || document.documentElement.clientHeight || 480 };
+    var vw = 0, vh = 0;
+    // Prefer measuring the fixed full-screen stage (most reliable after CSS 100dvh)
+    if (stage) {
+      var br = stage.getBoundingClientRect();
+      if (br && br.width > 0 && br.height > 0) {
+        vw = br.width;
+        vh = br.height;
+      }
+    }
+    var iw = window.innerWidth || 0;
+    var ih = window.innerHeight || 0;
+    var cw = (document.documentElement && document.documentElement.clientWidth) || 0;
+    var ch = (document.documentElement && document.documentElement.clientHeight) || 0;
+    vw = Math.max(vw, iw, cw);
+    vh = Math.max(vh, ih, ch);
+    // visualViewport as another candidate (do NOT prefer alone — often stale on iOS)
+    var vv = window.visualViewport;
+    if (vv && vv.width && vv.height) {
+      vw = Math.max(vw, vv.width);
+      vh = Math.max(vh, vv.height);
+    }
+    // Screen sanity floor: after rotate, JS sizes can stay stuck on old orientation
+    try {
+      var sw = window.screen && window.screen.width ? window.screen.width : 0;
+      var sh = window.screen && window.screen.height ? window.screen.height : 0;
+      if (sw && sh) {
+        var landscape = false;
+        if (window.screen.orientation && typeof window.screen.orientation.type === 'string') {
+          landscape = window.screen.orientation.type.indexOf('landscape') === 0;
+        } else if (typeof window.orientation === 'number') {
+          landscape = Math.abs(window.orientation) === 90;
+        } else {
+          landscape = (iw || vw) > (ih || vh);
+        }
+        var longSide = Math.max(sw, sh);
+        var shortSide = Math.min(sw, sh);
+        if (landscape) {
+          // If reported width still looks like the short physical side, lift to screen
+          if (vw < longSide * 0.85) vw = Math.max(vw, longSide);
+          if (vh < shortSide * 0.85) vh = Math.max(vh, shortSide);
+        } else {
+          if (vw < shortSide * 0.85) vw = Math.max(vw, shortSide);
+          if (vh < longSide * 0.85) vh = Math.max(vh, longSide);
+        }
+      }
+    } catch (_) {}
+    return {
+      w: Math.max(1, vw || 320),
+      h: Math.max(1, vh || 480)
+    };
   }
 
   function layoutCanvas() {
-    // Single scale contain: CSS size is ALWAYS exactly 16:9 of internal W×H
-    const vv = window.visualViewport;
-    const vw = (vv && vv.width) ? vv.width : (window.innerWidth || document.documentElement.clientWidth || 320);
-    const vh = (vv && vv.height) ? vv.height : (window.innerHeight || document.documentElement.clientHeight || 480);
-    const scale = Math.min(vw / W, vh / H);
-    const cssW = Math.max(1, Math.floor(W * scale));
-    const cssH = Math.max(1, Math.floor(H * scale)); // == floor(cssW * 9/16) ideally
+    // 16:9 contain — never stretch
+    var size = viewportSize();
+    var vw = size.w, vh = size.h;
+    var scale = Math.min(vw / W, vh / H);
+    var cssW = Math.max(1, Math.floor(W * scale));
+    var cssH = Math.max(1, Math.floor(H * scale));
     // Re-derive H from W to kill rounding stretch
-    const cssH2 = Math.max(1, Math.round(cssW * (H / W)));
-    const finalW = cssW;
-    const finalH = (Math.abs(cssH2 - cssH) <= 2) ? cssH2 : cssH;
+    var cssH2 = Math.max(1, Math.round(cssW * (H / W)));
+    var finalW = cssW;
+    var finalH = (Math.abs(cssH2 - cssH) <= 2) ? cssH2 : cssH;
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
     canvas.style.width = finalW + 'px';
     canvas.style.height = finalH + 'px';
     ctx.imageSmoothingEnabled = false;
   }
-  layoutCanvas();
-
-  window.addEventListener('resize', layoutCanvas);
-  window.addEventListener('orientationchange', function () { setTimeout(layoutCanvas, 50); });
-  if (window.visualViewport) {
-    visualViewport.addEventListener('resize', layoutCanvas);
-    visualViewport.addEventListener('scroll', layoutCanvas);
-  }
 
   // Soft tip only — no hard rotate gate (iOS orientation APIs unreliable)
   function updateSoftTip() {
     var tip = document.getElementById('softTip');
     if (!tip) return;
-    var w = window.innerWidth || 1, h = window.innerHeight || 1;
+    var size = viewportSize();
+    var w = size.w || 1, h = size.h || 1;
     var touch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
     tip.style.display = (touch && h > w) ? 'block' : 'none';
   }
-  updateSoftTip();
-  window.addEventListener('resize', updateSoftTip);
-  window.addEventListener('orientationchange', function () {
-    setTimeout(function () { updateSoftTip(); layoutCanvas(); }, 100);
-    setTimeout(function () { updateSoftTip(); layoutCanvas(); }, 400);
-  });
+
+  function layoutAndTip() {
+    layoutCanvas();
+    updateSoftTip();
+  }
+
+  // Aggressive re-layout: iOS Safari visualViewport/innerWidth lag after orientationchange
+  var layoutRetryTimers = [];
+  function scheduleAggressiveLayout() {
+    var delays = [0, 50, 100, 250, 500, 1000];
+    var i;
+    for (i = 0; i < layoutRetryTimers.length; i++) clearTimeout(layoutRetryTimers[i]);
+    layoutRetryTimers = [];
+    try {
+      requestAnimationFrame(function () { layoutAndTip(); });
+    } catch (_) {
+      layoutAndTip();
+    }
+    for (i = 0; i < delays.length; i++) {
+      (function (ms) {
+        layoutRetryTimers.push(setTimeout(layoutAndTip, ms));
+      })(delays[i]);
+    }
+  }
+
+  layoutAndTip();
+
+  window.addEventListener('resize', scheduleAggressiveLayout);
+  window.addEventListener('orientationchange', scheduleAggressiveLayout);
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', scheduleAggressiveLayout);
+    visualViewport.addEventListener('scroll', scheduleAggressiveLayout);
+  }
+  if (window.screen && window.screen.orientation && window.screen.orientation.addEventListener) {
+    try {
+      window.screen.orientation.addEventListener('change', scheduleAggressiveLayout);
+    } catch (_) {}
+  }
 
 
   function clientToCanvas(clientX, clientY) {
