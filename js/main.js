@@ -90,22 +90,64 @@
     portraitMq = null;
   }
 
+  var portraitDismissed = false; // session: 「繼續直機玩」 until reload
+  var rotateModal = document.getElementById('rotateModal');
+  var rotateDismissBtn = document.getElementById('rotateDismiss');
+
+  function isTouchDevice() {
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+  }
+
+  function isPortrait() {
+    if (portraitMq && typeof portraitMq.matches === 'boolean') {
+      return portraitMq.matches;
+    }
+    return (window.innerHeight || 0) > (window.innerWidth || 0);
+  }
+
   function updateSoftTip() {
     var tip = document.getElementById('softTip');
-    if (!tip) return;
-    var touch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
-    var portrait = false;
-    if (portraitMq && typeof portraitMq.matches === 'boolean') {
-      portrait = portraitMq.matches;
-    } else {
-      portrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+    var touch = isTouchDevice();
+    var portrait = isPortrait();
+    var showModal = !!(rotateModal && touch && portrait && !portraitDismissed);
+    if (rotateModal) {
+      rotateModal.style.display = showModal ? 'flex' : 'none';
     }
-    tip.style.display = (touch && portrait) ? 'block' : 'none';
+    // Small tip only when portrait + touch but modal dismissed (gentle reminder)
+    if (tip) {
+      tip.style.display = (touch && portrait && portraitDismissed) ? 'block' : 'none';
+    }
   }
 
   function layoutAndTip() {
     layoutCanvas();
     updateSoftTip();
+  }
+
+  if (rotateDismissBtn) {
+    function dismissPortrait(ev) {
+      if (ev) {
+        try { ev.preventDefault(); } catch (_) {}
+        try { ev.stopPropagation(); } catch (_) {}
+      }
+      portraitDismissed = true;
+      updateSoftTip();
+    }
+    rotateDismissBtn.addEventListener('click', dismissPortrait);
+    rotateDismissBtn.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dismissPortrait(e);
+    }, { passive: false });
+    rotateDismissBtn.addEventListener('touchstart', function (e) {
+      e.stopPropagation();
+    }, { passive: true });
+  }
+  if (rotateModal) {
+    rotateModal.addEventListener('touchstart', function (e) {
+      // allow card buttons; don't start sticks through overlay
+      e.stopPropagation();
+    }, { passive: true });
   }
 
   layoutAndTip();
