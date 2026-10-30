@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00009
+ * Family Survivors — Art Demo v0.00010
  * Mobile fix: canvas fills viewport, bigger sticks, visualViewport, safe init paint
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00009';
+  const VERSION = 'v0.00010';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -64,22 +64,25 @@
   }
 
   function layoutCanvas() {
-    // Size comes from CSS (#game 16:9 letterbox). Only keep bitmap size.
-    // Clear any leftover inline stretch from older cached builds.
-    canvas.style.position = '';
-    canvas.style.left = '';
-    canvas.style.top = '';
-    canvas.style.right = '';
-    canvas.style.bottom = '';
-    canvas.style.width = '';
-    canvas.style.height = '';
-    canvas.style.maxWidth = '';
-    canvas.style.maxHeight = '';
+    // Single scale contain: CSS size is ALWAYS exactly 16:9 of internal W×H
+    const vv = window.visualViewport;
+    const vw = (vv && vv.width) ? vv.width : (window.innerWidth || document.documentElement.clientWidth || 320);
+    const vh = (vv && vv.height) ? vv.height : (window.innerHeight || document.documentElement.clientHeight || 480);
+    const scale = Math.min(vw / W, vh / H);
+    const cssW = Math.max(1, Math.floor(W * scale));
+    const cssH = Math.max(1, Math.floor(H * scale)); // == floor(cssW * 9/16) ideally
+    // Re-derive H from W to kill rounding stretch
+    const cssH2 = Math.max(1, Math.round(cssW * (H / W)));
+    const finalW = cssW;
+    const finalH = (Math.abs(cssH2 - cssH) <= 2) ? cssH2 : cssH;
     if (canvas.width !== W) canvas.width = W;
     if (canvas.height !== H) canvas.height = H;
+    canvas.style.width = finalW + 'px';
+    canvas.style.height = finalH + 'px';
     ctx.imageSmoothingEnabled = false;
   }
   layoutCanvas();
+
   window.addEventListener('resize', layoutCanvas);
   window.addEventListener('orientationchange', function () { setTimeout(layoutCanvas, 50); });
   if (window.visualViewport) {

@@ -1,5 +1,5 @@
-# Family Survivors — Art Demo v0.00009
+# Family Survivors — Art Demo v0.00010
 
-CSS letterbox 16:9（直機上下黑邊）。腳本 `?v=00009` 防 cache。
+Internal 1920×1080; display uses single-scale contain (exact 16:9 CSS). Prefer landscape.
 
 Play: https://show182002.github.io/family-survivors-art-demo/
