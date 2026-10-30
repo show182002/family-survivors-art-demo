@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta http-equiv="Cache-Control" content="no-cache" />
-  <title>Family Survivors — Art Demo v0.00016</title>
+  <title>Family Survivors — Art Demo v0.00017</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -163,24 +163,6 @@
       line-height: 1.45;
       color: rgba(255,248,224,.85);
     }
-    #rotateDismiss {
-      min-height: 44px;
-      width: 100%;
-      padding: 10px 14px;
-      border: 2px solid #ffe066;
-      border-radius: 12px;
-      background: rgba(0,0,0,.55);
-      color: #ffe066;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #rotateDismiss:active {
-      background: rgba(40,30,0,.9);
-    }
     #fsFailTip {
       display: none;
       position: fixed;
@@ -210,15 +192,14 @@
   <div id="stage">
     <canvas id="game" width="1920" height="1080"></canvas>
   </div>
-  <div id="verBadge">v0.00016</div>
+  <div id="verBadge">v0.00017</div>
   <div id="softTip">建議打橫玩 · 直機會留黑邊</div>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00016</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00017</div>
   <div id="rotateModal" role="dialog" aria-modal="true" aria-labelledby="rotateTitle">
     <div class="card">
       <div class="icon" aria-hidden="true">📱↔️</div>
       <h2 id="rotateTitle">請打橫玩</h2>
-      <p>直機會有黑邊，體驗差啲。<br>轉橫機最好；唔想轉都可以繼續。</p>
-      <button type="button" id="rotateDismiss">繼續直機玩</button>
+      <p>請將手機打橫先可以玩。<br>轉到橫向之後會自動開始。</p>
     </div>
   </div>
   <button type="button" id="fsBtn" aria-label="全螢幕">全螢幕</button>
@@ -232,9 +213,9 @@
     } catch (e) {}
   })();
   </script>
-  <script src="js/spriteUtil.js?v=00016"></script>
-  <script src="js/characters/daughter.js?v=00016"></script>
-  <script src="js/characters/dad.js?v=00016"></script>
-  <script src="js/main.js?v=00016"></script>
+  <script src="js/spriteUtil.js?v=00017"></script>
+  <script src="js/characters/daughter.js?v=00017"></script>
+  <script src="js/characters/dad.js?v=00017"></script>
+  <script src="js/main.js?v=00017"></script>
 </body>
 </html>

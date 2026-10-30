@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00016
- * Mobile fix: CSS sizes canvas (dvw/dvh 16:9); fullscreen button + soft Safari tip
+ * Family Survivors — Art Demo v0.00017
+ * Mobile fix: CSS 16:9; hard portrait gate; fullscreen button
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00016';
+  const VERSION = 'v0.00017';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -90,9 +90,7 @@
     portraitMq = null;
   }
 
-  var portraitDismissed = false; // session: 「繼續直機玩」 until reload
   var rotateModal = document.getElementById('rotateModal');
-  var rotateDismissBtn = document.getElementById('rotateDismiss');
 
   function isTouchDevice() {
     return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
@@ -109,14 +107,13 @@
     var tip = document.getElementById('softTip');
     var touch = isTouchDevice();
     var portrait = isPortrait();
-    var showModal = !!(rotateModal && touch && portrait && !portraitDismissed);
+    // Hard gate: touch + portrait → full overlay, no dismiss; landscape hides it
+    var showModal = !!(rotateModal && touch && portrait);
     if (rotateModal) {
       rotateModal.style.display = showModal ? 'flex' : 'none';
     }
-    // Small tip only when portrait + touch but modal dismissed (gentle reminder)
-    if (tip) {
-      tip.style.display = (touch && portrait && portraitDismissed) ? 'block' : 'none';
-    }
+    // soft tip unused under hard gate (modal covers message)
+    if (tip) tip.style.display = 'none';
   }
 
   function layoutAndTip() {
@@ -124,30 +121,16 @@
     updateSoftTip();
   }
 
-  if (rotateDismissBtn) {
-    function dismissPortrait(ev) {
-      if (ev) {
-        try { ev.preventDefault(); } catch (_) {}
-        try { ev.stopPropagation(); } catch (_) {}
-      }
-      portraitDismissed = true;
-      updateSoftTip();
-    }
-    rotateDismissBtn.addEventListener('click', dismissPortrait);
-    rotateDismissBtn.addEventListener('touchend', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dismissPortrait(e);
-    }, { passive: false });
-    rotateDismissBtn.addEventListener('touchstart', function (e) {
-      e.stopPropagation();
-    }, { passive: true });
-  }
   if (rotateModal) {
     rotateModal.addEventListener('touchstart', function (e) {
-      // allow card buttons; don't start sticks through overlay
+      // block sticks through overlay while gated
+      e.preventDefault();
       e.stopPropagation();
-    }, { passive: true });
+    }, { passive: false });
+    rotateModal.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
   }
 
   layoutAndTip();
