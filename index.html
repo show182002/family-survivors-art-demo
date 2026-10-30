@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Family Survivors — Art Demo v0.00007</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      min-height: 100dvh;
+      background: #1a1408;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      font-family: -apple-system, "PingFang HK", "Segoe UI", sans-serif;
+    }
+    #openHelp {
+      position: fixed; inset: 0; z-index: 10;
+      box-sizing: border-box;
+      padding: max(24px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+      background: #1a1408;
+      color: #fff8e0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #openHelp h1 { font-size: 28px; margin: 0 0 14px; color: #ffe066; }
+    #openHelp p { font-size: 18px; line-height: 1.55; margin: 0 0 12px; }
+    #openHelp .box {
+      background: #3a2a10; border: 2px solid #ffe066; border-radius: 14px;
+      padding: 16px; margin: 16px 0;
+    }
+    #openHelp ol { font-size: 18px; line-height: 1.7; padding-left: 1.3em; margin: 8px 0; }
+    #openHelp .ok { color: #8f8; font-size: 15px; margin-top: 18px; }
+    #game {
+      display: none;
+      position: fixed;
+      left: 0; top: 0; right: 0; bottom: 0;
+      width: 100% !important;
+      height: 100% !important;
+      background: #3d6b2e;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      touch-action: none;
+      z-index: 1;
+    }
+    #hint {
+      display: none;
+      position: fixed; left: 8px; right: 8px; bottom: 6px;
+      z-index: 2;
+      color: rgba(255,255,240,.45);
+      font-size: 11px;
+      text-align: center;
+      pointer-events: none;
+      text-shadow: 0 1px 2px #000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Visible WITHOUT JavaScript (Files / Quick Look preview) -->
+  <div id="openHelp">
+    <h1>而家仲未開到遊戲</h1>
+    <div class="box">
+      <p><b>你而家好可能係用「檔案預覽」睇緊呢個 HTML。</b></p>
+      <p>預覽只會顯示底色（綠色），<b>唔會跑 JavaScript</b>，所以無角色、無搖桿。</p>
+    </div>
+    <p><b>請咁樣用瀏覽器開啟：</b></p>
+    <ol>
+      <li>撳右上角／右下角 <b>分享</b></li>
+      <li>揀 <b>用 Chrome 開啟</b> 或 <b>用 Safari 開啟</b></li>
+      <li>開咗之後應該會見到草地、兩個角色同左右搖桿</li>
+    </ol>
+    <p class="ok">如果已經用瀏覽器開而仍然得綠色：話我知你用緊邊個瀏覽器同系統版本。</p>
+    <noscript><p style="color:#f66;font-size:20px;margin-top:20px">呢個環境關閉咗 JavaScript，遊戲一定開唔到。</p></noscript>
+  </div>
+
+  <canvas id="game" width="1920" height="1080"></canvas>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · v0.00007</div>
+
+  <!-- Tiny boot: if JS runs at all, flip UI before heavy scripts -->
+  <script>
+  (function () {
+    try {
+      var h = document.getElementById('openHelp');
+      if (h) {
+        h.innerHTML = '<h1 style="color:#8f8">JS 已啟動…</h1><p>載入角色同地圖中</p>';
+      }
+      window.__ART_DEMO_JS__ = true;
+    } catch (e) {}
+  })();
+  </script>
+  <script src="js/spriteUtil.js"></script>
+  <script src="js/characters/daughter.js"></script>
+  <script src="js/characters/dad.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  (function () {
+    // If main never hid the gate (crash), show error
+    setTimeout(function () {
+      if (!window.__ART_DEMO_RUNNING__) {
+        var h = document.getElementById('openHelp');
+        var c = document.getElementById('game');
+        if (h && h.style.display !== 'none') {
+          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>JS 有跑但主程式未開始。請截圖呢個畫面寄返。</p><p style="font-size:14px;opacity:.7">v0.00007</p>';
+        } else if (h && (!c || c.style.display === 'none')) {
+          h.style.display = 'block';
+          h.innerHTML = '<h1 style="color:#f66">遊戲啟動失敗</h1><p>請用 Chrome / Safari 開啟，唔好用檔案預覽。</p>';
+        }
+      }
+    }, 1200);
+  })();
+  </script>
+</body>
+</html>
