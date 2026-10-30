@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta http-equiv="Cache-Control" content="no-cache" />
-  <title>Family Survivors — Art Demo v0.00015</title>
+  <title>Family Survivors — Art Demo v0.00016</title>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -95,6 +95,51 @@
       pointer-events: none;
       white-space: nowrap;
     }
+    #fsBtn {
+      display: none;
+      position: fixed;
+      right: max(10px, env(safe-area-inset-right));
+      bottom: max(28px, calc(env(safe-area-inset-bottom) + 22px));
+      z-index: 20;
+      min-height: 44px;
+      min-width: 88px;
+      padding: 10px 16px;
+      border: 2px solid #ffe066;
+      border-radius: 12px;
+      background: rgba(0,0,0,.75);
+      color: #ffe066;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      line-height: 1.2;
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 8px rgba(0,0,0,.45);
+      cursor: pointer;
+    }
+    #fsBtn:active {
+      background: rgba(40,30,0,.9);
+    }
+    #fsFailTip {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 30;
+      max-width: min(92vw, 360px);
+      box-sizing: border-box;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.88);
+      color: #ffe066;
+      font-size: 15px;
+      line-height: 1.45;
+      text-align: center;
+      pointer-events: none;
+      white-space: normal;
+    }
   </style>
 </head>
 <body>
@@ -105,9 +150,11 @@
   <div id="stage">
     <canvas id="game" width="1920" height="1080"></canvas>
   </div>
-  <div id="verBadge">v0.00015</div>
+  <div id="verBadge">v0.00016</div>
   <div id="softTip">建議打橫玩 · 直機會留黑邊</div>
-  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00015</div>
+  <div id="hint">左半＝P1 女兒 · 右半＝P2 爸爸 · 等比 16:9 · v0.00016</div>
+  <button type="button" id="fsBtn" aria-label="全螢幕">全螢幕</button>
+  <div id="fsFailTip">呢個瀏覽器唔支援全螢幕。請用 Safari 右下「⋯」→用 Safari 開啟，再打橫。</div>
   <script>
   (function () {
     try {
@@ -117,9 +164,9 @@
     } catch (e) {}
   })();
   </script>
-  <script src="js/spriteUtil.js?v=00015"></script>
-  <script src="js/characters/daughter.js?v=00015"></script>
-  <script src="js/characters/dad.js?v=00015"></script>
-  <script src="js/main.js?v=00015"></script>
+  <script src="js/spriteUtil.js?v=00016"></script>
+  <script src="js/characters/daughter.js?v=00016"></script>
+  <script src="js/characters/dad.js?v=00016"></script>
+  <script src="js/main.js?v=00016"></script>
 </body>
 </html>

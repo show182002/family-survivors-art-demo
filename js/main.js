@@ -1,12 +1,12 @@
 /**
- * Family Survivors — Art Demo v0.00015
- * Mobile fix: CSS sizes canvas (dvw/dvh 16:9); JS does not fight rotate
+ * Family Survivors — Art Demo v0.00016
+ * Mobile fix: CSS sizes canvas (dvw/dvh 16:9); fullscreen button + soft Safari tip
  * P1 left stick/WASD = 女兒 · P2 right stick/Arrows = 爸爸
  */
 (function () {
   'use strict';
 
-  const VERSION = 'v0.00015';
+  const VERSION = 'v0.00016';
   const W = 1920;
   const H = 1080;
   const TILE = 40;
@@ -124,6 +124,142 @@
       }
     } catch (_) {}
   }
+
+  // —— Fullscreen button ——
+  var fsBtn = document.getElementById('fsBtn');
+  var fsFailTip = document.getElementById('fsFailTip');
+  var fsFailTimer = null;
+  if (fsBtn) fsBtn.style.display = 'block';
+
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  function syncFsBtnLabel() {
+    if (!fsBtn) return;
+    fsBtn.textContent = isFullscreen() ? '退出' : '全螢幕';
+  }
+
+  function showFsFailTip() {
+    if (!fsFailTip) return;
+    fsFailTip.style.display = 'block';
+    if (fsFailTimer) clearTimeout(fsFailTimer);
+    fsFailTimer = setTimeout(function () {
+      fsFailTip.style.display = 'none';
+      fsFailTimer = null;
+    }, 3500);
+  }
+
+  function tryLockLandscape() {
+    try {
+      var o = screen.orientation || screen.mozOrientation || screen.msOrientation;
+      if (o && typeof o.lock === 'function') {
+        var p = o.lock('landscape');
+        if (p && typeof p.catch === 'function') {
+          p.catch(function () {
+            try { o.lock('landscape-primary'); } catch (_) {}
+          });
+        }
+      }
+    } catch (_) {
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape-primary').catch(function () {});
+        }
+      } catch (_2) {}
+    }
+  }
+
+  function requestFsOn(el) {
+    if (!el) return Promise.reject(new Error('no el'));
+    if (typeof el.requestFullscreen === 'function') return el.requestFullscreen();
+    if (typeof el.webkitRequestFullscreen === 'function') return el.webkitRequestFullscreen();
+    if (typeof el.webkitRequestFullScreen === 'function') return el.webkitRequestFullScreen();
+    return Promise.reject(new Error('no fullscreen API'));
+  }
+
+  function exitFs() {
+    if (typeof document.exitFullscreen === 'function') return document.exitFullscreen();
+    if (typeof document.webkitExitFullscreen === 'function') return document.webkitExitFullscreen();
+    if (typeof document.webkitCancelFullScreen === 'function') return document.webkitCancelFullScreen();
+    return Promise.reject(new Error('no exit'));
+  }
+
+  function onFsChange() {
+    syncFsBtnLabel();
+    // Clear inline sizes so CSS contain (dvw/dvh) applies after fullscreen
+    try {
+      canvas.style.width = '';
+      canvas.style.height = '';
+    } catch (_) {}
+    layoutAndTip();
+    // Delayed refresh — iOS/Android often update viewport after transition
+    setTimeout(layoutAndTip, 80);
+    setTimeout(layoutAndTip, 250);
+    setTimeout(layoutAndTip, 500);
+  }
+
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+
+  function toggleFullscreen(ev) {
+    if (ev) {
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
+    }
+    if (isFullscreen()) {
+      exitFs().catch(function () {});
+      return;
+    }
+    // Prefer documentElement so overlay UI (全螢幕 button) stays visible;
+    // fall back to #stage for odd WebViews.
+    var targets = [document.documentElement];
+    if (stage) targets.push(stage);
+    function tryNext(i) {
+      if (i >= targets.length) {
+        showFsFailTip();
+        return;
+      }
+      var p;
+      try {
+        p = requestFsOn(targets[i]);
+      } catch (err) {
+        tryNext(i + 1);
+        return;
+      }
+      if (!p || typeof p.then !== 'function') {
+        setTimeout(function () {
+          if (isFullscreen()) {
+            tryLockLandscape();
+            onFsChange();
+          } else {
+            tryNext(i + 1);
+          }
+        }, 100);
+        return;
+      }
+      p.then(function () {
+        tryLockLandscape();
+        onFsChange();
+      }).catch(function () {
+        tryNext(i + 1);
+      });
+    }
+    tryNext(0);
+  }
+
+  if (fsBtn) {
+    fsBtn.addEventListener('click', toggleFullscreen);
+    fsBtn.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFullscreen(e);
+    }, { passive: false });
+    fsBtn.addEventListener('touchstart', function (e) {
+      e.stopPropagation();
+    }, { passive: true });
+  }
+  syncFsBtnLabel();
 
 
   function clientToCanvas(clientX, clientY) {
